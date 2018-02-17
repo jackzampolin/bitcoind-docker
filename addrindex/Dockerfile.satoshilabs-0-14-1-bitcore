@@ -1,0 +1,21 @@
+FROM debian:stretch-slim
+
+RUN set -ex \
+	&& apt-get update \
+	&& apt-get install -qq --no-install-recommends ca-certificates dirmngr gosu gpg wget \
+	&& rm -rf /var/lib/apt/lists/*
+
+ENV BITCOIN_VERSION 0.14.1
+ENV BITCOIN_URL https://github.com/satoshilabs/bitcoin/releases/download/v0.14.1-bitcore/bitcoin-0.14.1-linux64.tar.gz
+ENV BITCOIN_SHA256 892fb65351f77153a6c69d25a6dfff6407802c8a209009ca2d04d332a5d06e70
+
+# install bitcoin binaries
+RUN set -ex \
+	&& cd /tmp \
+	&& wget -qO bitcoin.tar.gz "$BITCOIN_URL" \
+	&& echo "$BITCOIN_SHA256 bitcoin.tar.gz" | sha256sum -c - \
+	&& tar -xzvf bitcoin.tar.gz -C /usr/local --strip-components=1 --exclude=*-qt \
+	&& rm -rf /tmp/*
+
+EXPOSE 8332 8333 18332 18333
+CMD ["bitcoind"]
